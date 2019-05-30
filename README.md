@@ -1,5 +1,5 @@
 # TupleTables
-Small library for readable initialization of multiple objects with a table of tuples.
+Initialize a large collection of objects in a more readable way.
 
 ## Example usage
 ```cs
