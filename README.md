@@ -1,6 +1,8 @@
 # Tuple Tables
 Initialize a large collection of objects in a more readable way.
 
+[![NuGet](https://img.shields.io/nuget/dt/Yolofy.TupleTables.svg?style=for-the-badge)](https://www.nuget.org/packages/simpleinjector)
+
 ## Example usage
 ```cs
  var table = TupleTable<Person>.Create
