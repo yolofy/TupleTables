@@ -18,7 +18,7 @@ Small library for readable initialization of multiple objects whit a table of tu
 ```
 
 ## Why?
-Often in unit tests, there is a lot of data being initialized. The default for many programmers is to use object initializers. But this quickly produces a hard to read peace of code:
+Often in unit tests, there is a lot of data being initialized. The default for many developers is to use object initializers. But this quickly produces a hard to read peace of code:
 ```cs
 var list = new List<Person>
                        {
