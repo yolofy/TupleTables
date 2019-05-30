@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Xunit;
 
 namespace Yolofy.Test
 {
-    public class TableTest
+    public class TupleTableTest
     {
         private enum Gender
         {
@@ -14,7 +15,7 @@ namespace Yolofy.Test
             Female
         }
 
-        private class Record
+        private class Person
         {
             public int Field;
 
@@ -34,7 +35,7 @@ namespace Yolofy.Test
         [Fact]
         public void TupleTable_CreatesAndInitializes_Objects()
         {
-            var table = TupleTable<Record>.Create
+            var table = TupleTable<Person>.Create
                   (r => r.Id,           r2 => r2.Name,  r3 => r3.Age,   r4 => r4.Gender,
                   (Guid.NewGuid(),      "Xumina",       15,             Gender.Female),
                   (Guid.NewGuid(),      "Bale",         26,             Gender.Male),
@@ -100,12 +101,12 @@ namespace Yolofy.Test
         {
             void Test()
             {
-                var table = TupleTable<Record>.Create
+                var table = TupleTable<Person>.Create
                   (r => r.Id,           r2 => r2.ToString(),  r3 => r3.Age,   r4 => r4.Gender,
                   (Guid.NewGuid(),      "Xumina",             15,             Gender.Female)).ToArray();
             }
 
-            Assert.Throws<ArgumentException>("parameter", Test);
+            Assert.Throws<ArgumentException>("property", Test);
         }
 
         [Fact]
@@ -113,13 +114,13 @@ namespace Yolofy.Test
         {
             void Test()
             {
-                var table = TupleTable<Record>.Create
+                var table = TupleTable<Person>.Create
                   (r => r.Id,           r2 => r2.Name,  r3 => r3.Field,   r4 => r4.Gender,
                   (Guid.NewGuid(),      "Xumina",       15,               Gender.Female));
                 var array = table.ToArray();
             }
 
-            Assert.Throws<ArgumentException>("parameter", Test);
+            Assert.Throws<ArgumentException>("property", Test);
         }
 
         [Fact]
@@ -127,13 +128,27 @@ namespace Yolofy.Test
         {
             void Test()
             {
-                var table = TupleTable<Record>.Create
+                var table = TupleTable<Person>.Create
                   (r => r.Id,           r2 => r2.ReadOnlyProperty,  r3 => r3.Age,   r4 => r4.Gender,
                   (Guid.NewGuid(),      "Xumina",                   15,             Gender.Female));
                 var array = table.ToArray();
             }
 
-            Assert.Throws<ArgumentException>("parameter", Test);
+            Assert.Throws<ArgumentException>("property", Test);
+        }
+
+        [Fact]
+        public void TupleTable_UnrelatedProperty_ThrowsArgumentException()
+        {
+            void Test()
+            {
+                var table = TupleTable<Person>.Create
+                  (r => r.Id,           r2 => r2.ReadOnlyProperty,  r3 => this.Number,   r4 => r4.Gender,
+                  (Guid.NewGuid(),      "Xumina",                   15,                  Gender.Female));
+                var array = table.ToArray();
+            }
+
+            Assert.Throws<ArgumentException>("property", Test);
         }
     }
 }

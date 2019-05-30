@@ -91,6 +91,11 @@ namespace Yolofy
                 throw new ArgumentException($"Property {propertyInfo.Name} must be selected from type {typeof(TObject)}", nameof(property));
             }
 
+            if (!propertyInfo.CanWrite)
+            {
+                throw new ArgumentException($"Property {propertyInfo.Name} has no setter", nameof(property));
+            }
+
             return propertyInfo;
         }
     }

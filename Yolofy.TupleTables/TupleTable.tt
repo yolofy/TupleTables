@@ -3,9 +3,10 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ output extension=".cs" #>
+<#@ output extension=".generated.cs" #>
 <# 
     var columns = 20; 
+    Func<int, string> createGenericArgs = (int nr) => string.Join(", ", Enumerable.Range(1, nr).Select(i => "T"+i));
 #>
 using System;
 using System.Collections;
@@ -24,13 +25,13 @@ namespace Yolofy
 
 <# for(var i = 2; i < columns+1; i++)
 { 
-    var genericT = string.Join(", ", Enumerable.Range(1, i).Select(x => "T"+x));
+    var genericArgs = createGenericArgs(i);
     var parameters = string.Join(", ", Enumerable.Range(1, i).Select(x => $"Expression<Func<TObject, T{x}>> property{x}"));
     var properties = string.Join(", ", Enumerable.Range(1, i).Select(x => $"property{x}"));
-    var tupleType = $"({genericT})";
+    var tupleType = $"({genericArgs})";
 #>
-        public static IEnumerable<TObject> Create<<#= genericT #>>(<#= parameters #>, params <#=tupleType#>[] records)
-            => new TupleTable<TObject, <#=genericT#>>(<#=properties#>, records);
+        public static IEnumerable<TObject> Create<<#= genericArgs #>>(<#= parameters #>, params <#=tupleType#>[] records)
+            => new TupleTable<TObject, <#=genericArgs#>>(<#=properties#>, records);
 
 <# } #>
         protected static PropertyInfo GetPropertyInfo<T1>(Expression<Func<TObject, T1>> property)
@@ -54,17 +55,22 @@ namespace Yolofy
                 throw new ArgumentException($"Property {propertyInfo.Name} must be selected from type {typeof(TObject)}", nameof(property));
             }
 
+            if (!propertyInfo.CanWrite)
+            {
+                throw new ArgumentException($"Property {propertyInfo.Name} has no setter");
+            }
+
             return propertyInfo;
         }
     }
 
 <# for(var i = 2; i < columns+1; i++) 
 {
-    var genericT = string.Join(", ",Enumerable.Range(1, i).Select(x => "T"+x)); 
+    var genericArgs = createGenericArgs(i); 
     var parameterT = string.Join(", ",Enumerable.Range(1, i).Select(x => $"T{x} value{x}")); 
-    var tupleType = $"({genericT})";
+    var tupleType = $"({genericArgs})";
 #>
-    public class TupleTable<TObject, <#= genericT #>> : TupleTable<TObject>
+    public class TupleTable<TObject, <#= genericArgs #>> : TupleTable<TObject>
         where TObject : new()
     {
         public TupleTable(
