@@ -1,4 +1,4 @@
-# TupleTables
+# Tuple Tables
 Initialize a large collection of objects in a more readable way.
 
 ## Example usage
