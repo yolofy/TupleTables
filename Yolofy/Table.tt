@@ -1,0 +1,92 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<# 
+    var columns = 20; 
+#>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
+
+namespace Yolofy
+{
+    public class TupleTable<TObject> : IEnumerable<TObject>
+        where TObject : new()
+    {
+        protected readonly List<TObject> _internalList = new List<TObject>();
+        public IEnumerator<TObject> GetEnumerator() => _internalList.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => _internalList.GetEnumerator();
+
+<# for(var i = 2; i < columns+1; i++)
+{ 
+    var genericT = string.Join(", ", Enumerable.Range(1, i).Select(x => "T"+x));
+    var parameters = string.Join(", ", Enumerable.Range(1, i).Select(x => $"Expression<Func<TObject, T{x}>> property{x}"));
+    var properties = string.Join(", ", Enumerable.Range(1, i).Select(x => $"property{x}"));
+    var tupleType = $"({genericT})";
+#>
+        public static IEnumerable<TObject> Create<<#= genericT #>>(<#= parameters #>, params <#=tupleType#>[] records)
+            => new TupleTable<TObject, <#=genericT#>>(<#=properties#>, records);
+
+<# } #>
+        protected static PropertyInfo GetPropertyInfo<T1>(Expression<Func<TObject, T1>> property)
+        {
+            var memberExpression = property.Body as MemberExpression;
+
+            if (memberExpression == null)
+            {
+                throw new ArgumentException("Not a property, use obj => obj.Property", nameof(property));
+            }
+
+            var propertyInfo = memberExpression.Member as PropertyInfo;
+
+            if (propertyInfo == null)
+            {
+                throw new ArgumentException("Not a property", nameof(property));
+            }
+
+            if (memberExpression.Expression.Type != typeof(TObject))
+            {
+                throw new ArgumentException($"Property {propertyInfo.Name} must be selected from type {typeof(TObject)}", nameof(property));
+            }
+
+            return propertyInfo;
+        }
+    }
+
+<# for(var i = 2; i < columns+1; i++) 
+{
+    var genericT = string.Join(", ",Enumerable.Range(1, i).Select(x => "T"+x)); 
+    var parameterT = string.Join(", ",Enumerable.Range(1, i).Select(x => $"T{x} value{x}")); 
+    var tupleType = $"({genericT})";
+#>
+    public class TupleTable<TObject, <#= genericT #>> : TupleTable<TObject>
+        where TObject : new()
+    {
+        public TupleTable(
+<# for(var j=1; j <= i; j++) { #>
+            Expression<Func<TObject, T<#=j#>>> property<#=j#>,
+<# } #>
+            params <#=tupleType#>[] records)
+        {
+<# for(var j=1; j <= i; j++) { #>
+            var propertyInfo<#=j#> = GetPropertyInfo(property<#=j#>);
+<# } #>
+
+            foreach (var record in records)
+            {
+                var newObject = new TObject();
+<# for(var j=1; j <= i; j++) { #>
+                propertyInfo<#=j#>.SetValue(newObject, record.Item<#=j#>);
+<# } #>
+                _internalList.Add(newObject);
+            }
+        }
+    }
+
+<# } #>
+}
