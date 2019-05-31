@@ -124,7 +124,7 @@ static class PersonExtensions
      => l.Add(new Person { Id = id, Name = name, Age = age, Gender = gender });
 }
 
-var table = Table = new List<Person>
+var list = new List<Person>
         {
             { Guid.NewGuid(),      "Xumina",       15,    Gender.Female},
             { Guid.NewGuid(),      "Bale",         26,    Gender.Male},
